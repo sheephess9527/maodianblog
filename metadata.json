@@ -1,0 +1,7 @@
+{
+  "name": "会议助手 Pro",
+  "description": "一款由 AI 驱动的应用程序，可自动执行会议工作流程。它可以转录音频、总结讨论、提取行动项目、分析图像，并提供低延迟的聊天助手。",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
