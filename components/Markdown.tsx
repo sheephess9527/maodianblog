@@ -1,0 +1,238 @@
+import React from 'react';
+
+// 一个轻量的 Markdown 渲染器，零依赖。
+// 支持：标题、段落、有序/无序列表、引用、代码块、行内代码、
+//       粗体、斜体、链接、图片、分隔线。
+
+let keyCounter = 0;
+const nextKey = () => `md-${keyCounter++}`;
+
+// ---------- 行内解析（粗体 / 斜体 / 代码 / 链接 / 图片）----------
+function parseInline(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  // 依次匹配：图片、链接、行内代码、粗体、斜体
+  const pattern =
+    /(!\[([^\]]*)\]\(([^)]+)\))|(\[([^\]]+)\]\(([^)]+)\))|(`([^`]+)`)|(\*\*([^*]+)\*\*)|(\*([^*]+)\*)/g;
+
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+
+    if (match[1]) {
+      // 图片 ![alt](src)
+      nodes.push(
+        <img
+          key={nextKey()}
+          src={match[3]}
+          alt={match[2]}
+          className="my-6 w-full rounded-xl shadow-sm"
+          loading="lazy"
+        />,
+      );
+    } else if (match[4]) {
+      // 链接 [text](href)
+      const href = match[6];
+      const external = /^https?:\/\//.test(href);
+      nodes.push(
+        <a
+          key={nextKey()}
+          href={href}
+          {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          className="font-medium text-brand-600 underline decoration-brand-300 underline-offset-2 hover:text-brand-500 dark:text-brand-400"
+        >
+          {match[5]}
+        </a>,
+      );
+    } else if (match[7]) {
+      // 行内代码 `code`
+      nodes.push(
+        <code
+          key={nextKey()}
+          className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.85em] text-pink-600 dark:bg-slate-800 dark:text-pink-400"
+        >
+          {match[8]}
+        </code>,
+      );
+    } else if (match[9]) {
+      // 粗体 **text**
+      nodes.push(
+        <strong key={nextKey()} className="font-semibold text-slate-900 dark:text-white">
+          {parseInline(match[10])}
+        </strong>,
+      );
+    } else if (match[11]) {
+      // 斜体 *text*
+      nodes.push(
+        <em key={nextKey()} className="italic">
+          {parseInline(match[12])}
+        </em>,
+      );
+    }
+
+    lastIndex = pattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+
+  return nodes;
+}
+
+// ---------- 块级解析 ----------
+export function Markdown({ source }: { source: string }): React.ReactElement {
+  const lines = source.replace(/\r\n/g, '\n').split('\n');
+  const blocks: React.ReactNode[] = [];
+
+  let i = 0;
+  while (i < lines.length) {
+    let line = lines[i];
+
+    // 空行
+    if (line.trim() === '') {
+      i++;
+      continue;
+    }
+
+    // 代码块 ```
+    if (line.trim().startsWith('```')) {
+      const lang = line.trim().slice(3).trim();
+      const code: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+        code.push(lines[i]);
+        i++;
+      }
+      i++; // 跳过结束的 ```
+      blocks.push(
+        <pre
+          key={nextKey()}
+          className="my-6 overflow-x-auto rounded-xl bg-slate-900 p-4 text-sm leading-relaxed text-slate-100 shadow-sm dark:bg-black/60"
+        >
+          <code data-lang={lang} className="font-mono">
+            {code.join('\n')}
+          </code>
+        </pre>,
+      );
+      continue;
+    }
+
+    // 分隔线
+    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
+      blocks.push(<hr key={nextKey()} className="my-8 border-slate-200 dark:border-slate-800" />);
+      i++;
+      continue;
+    }
+
+    // 标题
+    const heading = line.match(/^(#{1,4})\s+(.*)$/);
+    if (heading) {
+      const level = heading[1].length;
+      const content = parseInline(heading[2]);
+      const cls = {
+        1: 'mt-10 mb-4 text-3xl font-bold text-slate-900 dark:text-white',
+        2: 'mt-10 mb-4 text-2xl font-bold text-slate-900 dark:text-white',
+        3: 'mt-8 mb-3 text-xl font-semibold text-slate-900 dark:text-white',
+        4: 'mt-6 mb-2 text-lg font-semibold text-slate-900 dark:text-white',
+      }[level as 1 | 2 | 3 | 4];
+      blocks.push(
+        React.createElement(
+          `h${level}`,
+          { key: nextKey(), className: cls },
+          content,
+        ),
+      );
+      i++;
+      continue;
+    }
+
+    // 引用
+    if (line.trim().startsWith('>')) {
+      const quote: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith('>')) {
+        quote.push(lines[i].replace(/^\s*>\s?/, ''));
+        i++;
+      }
+      blocks.push(
+        <blockquote
+          key={nextKey()}
+          className="my-6 border-l-4 border-brand-400 bg-brand-50/60 py-2 pl-5 pr-4 text-slate-600 dark:bg-brand-500/10 dark:text-slate-300"
+        >
+          {parseInline(quote.join(' '))}
+        </blockquote>,
+      );
+      continue;
+    }
+
+    // 有序列表
+    if (/^\d+\.\s+/.test(line.trim())) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
+        items.push(lines[i].trim().replace(/^\d+\.\s+/, ''));
+        i++;
+      }
+      blocks.push(
+        <ol
+          key={nextKey()}
+          className="my-5 ml-6 list-decimal space-y-2 marker:text-brand-500"
+        >
+          {items.map((it) => (
+            <li key={nextKey()} className="pl-1 leading-relaxed">
+              {parseInline(it)}
+            </li>
+          ))}
+        </ol>,
+      );
+      continue;
+    }
+
+    // 无序列表
+    if (/^[-*]\s+/.test(line.trim())) {
+      const items: string[] = [];
+      while (i < lines.length && /^[-*]\s+/.test(lines[i].trim())) {
+        items.push(lines[i].trim().replace(/^[-*]\s+/, ''));
+        i++;
+      }
+      blocks.push(
+        <ul
+          key={nextKey()}
+          className="my-5 ml-6 list-disc space-y-2 marker:text-brand-500"
+        >
+          {items.map((it) => (
+            <li key={nextKey()} className="pl-1 leading-relaxed">
+              {parseInline(it)}
+            </li>
+          ))}
+        </ul>,
+      );
+      continue;
+    }
+
+    // 普通段落（合并连续的非空行）
+    const para: string[] = [];
+    while (
+      i < lines.length &&
+      lines[i].trim() !== '' &&
+      !lines[i].trim().startsWith('```') &&
+      !/^(#{1,4})\s+/.test(lines[i]) &&
+      !lines[i].trim().startsWith('>') &&
+      !/^[-*]\s+/.test(lines[i].trim()) &&
+      !/^\d+\.\s+/.test(lines[i].trim()) &&
+      !/^(-{3,}|\*{3,}|_{3,})$/.test(lines[i].trim())
+    ) {
+      para.push(lines[i]);
+      i++;
+    }
+    blocks.push(
+      <p key={nextKey()} className="my-5 leading-[1.85] text-slate-700 dark:text-slate-300">
+        {parseInline(para.join(' '))}
+      </p>,
+    );
+  }
+
+  return <div>{blocks}</div>;
+}

@@ -3,28 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>会议助手 Pro</title>
+    <meta name="description" content="一个简洁现代的个人博客 —— 记录想法、教程与日常。" />
+    <title>墨记 · Inkwell Blog</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'Noto Sans SC', 'system-ui', 'sans-serif'],
+              serif: ['Noto Serif SC', 'Georgia', 'serif'],
+            },
+            colors: {
+              brand: {
+                50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+                400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+                800: '#3730a3', 900: '#312e81',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
-      body {
-        font-family: 'Inter', sans-serif;
+      html { scroll-behavior: smooth; }
+      body { font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif; }
+      /* 平滑的明暗切换过渡 */
+      body, header, article, aside, .theme-transition {
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
       }
+      ::selection { background-color: #c7d2fe; color: #312e81; }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0"
-  }
-}
-</script>
-</head>
-  <body class="bg-gray-900 text-gray-100">
+    <script type="importmap">
+      {
+        "imports": {
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+          "react/": "https://aistudiocdn.com/react@^19.2.0/",
+          "react": "https://aistudiocdn.com/react@^19.2.0"
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
