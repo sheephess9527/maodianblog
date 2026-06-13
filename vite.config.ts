@@ -3,8 +3,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  // 部署到子路径（如 GitHub Pages 的 user.github.io/repo/）时，把 base 改成 '/repo/'。
-  base: './',
+  // GitHub Pages 子路径，仓库名是 "-"
+  base: process.env.GITHUB_ACTIONS ? '/-/' : './',
   server: {
     port: 3000,
     host: '0.0.0.0',
