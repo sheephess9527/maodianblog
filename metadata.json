@@ -1,7 +1,5 @@
 {
-  "name": "会议助手 Pro",
-  "description": "一款由 AI 驱动的应用程序，可自动执行会议工作流程。它可以转录音频、总结讨论、提取行动项目、分析图像，并提供低延迟的聊天助手。",
-  "requestFramePermissions": [
-    "microphone"
-  ]
+  "name": "锚点 Anchor",
+  "description": "用系统对抗混乱，用逻辑重塑日常。一个聚焦系统思维、决策与效率的个人博客，基于 React + Vite 构建，支持明暗主题、标签筛选和 Markdown 写作（含表格）。",
+  "requestFramePermissions": []
 }
