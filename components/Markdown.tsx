@@ -29,7 +29,7 @@ function parseInline(text: string): React.ReactNode[] {
           key={nextKey()}
           src={match[3]}
           alt={match[2]}
-          className="my-6 w-full rounded-xl shadow-sm"
+          className="my-8 w-full rounded-lg"
           loading="lazy"
         />,
       );
@@ -111,7 +111,7 @@ export function Markdown({ source }: { source: string }): React.ReactElement {
       blocks.push(
         <pre
           key={nextKey()}
-          className="my-6 overflow-x-auto rounded-xl bg-slate-900 p-4 text-sm leading-relaxed text-slate-100 shadow-sm dark:bg-black/60"
+          className="my-8 overflow-x-auto rounded-lg bg-slate-900 p-5 text-sm leading-relaxed text-slate-100 dark:bg-black/60"
         >
           <code data-lang={lang} className="font-mono">
             {code.join('\n')}
@@ -148,7 +148,7 @@ export function Markdown({ source }: { source: string }): React.ReactElement {
       }
 
       blocks.push(
-        <div key={nextKey()} className="my-6 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+        <div key={nextKey()} className="my-8 overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/60">
@@ -184,7 +184,7 @@ export function Markdown({ source }: { source: string }): React.ReactElement {
 
     // 分隔线
     if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
-      blocks.push(<hr key={nextKey()} className="my-8 border-slate-200 dark:border-slate-800" />);
+      blocks.push(<hr key={nextKey()} className="my-10 border-slate-200 dark:border-slate-800" />);
       i++;
       continue;
     }
@@ -195,10 +195,10 @@ export function Markdown({ source }: { source: string }): React.ReactElement {
       const level = heading[1].length;
       const content = parseInline(heading[2]);
       const cls = {
-        1: 'mt-10 mb-4 text-3xl font-bold text-slate-900 dark:text-white',
-        2: 'mt-10 mb-4 text-2xl font-bold text-slate-900 dark:text-white',
-        3: 'mt-8 mb-3 text-xl font-semibold text-slate-900 dark:text-white',
-        4: 'mt-6 mb-2 text-lg font-semibold text-slate-900 dark:text-white',
+        1: 'mt-12 mb-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white',
+        2: 'mt-12 mb-4 text-2xl font-bold text-slate-900 dark:text-white',
+        3: 'mt-10 mb-3 text-xl font-semibold text-slate-900 dark:text-white',
+        4: 'mt-8 mb-2 text-lg font-semibold text-slate-900 dark:text-white',
       }[level as 1 | 2 | 3 | 4];
       blocks.push(
         React.createElement(
@@ -221,7 +221,7 @@ export function Markdown({ source }: { source: string }): React.ReactElement {
       blocks.push(
         <blockquote
           key={nextKey()}
-          className="my-6 border-l-4 border-brand-400 bg-brand-50/60 py-2 pl-5 pr-4 text-slate-600 dark:bg-brand-500/10 dark:text-slate-300"
+          className="my-8 border-l-4 border-accent-400 py-2 pl-6 pr-4 italic text-slate-500 dark:text-slate-400"
         >
           {parseInline(quote.join(' '))}
         </blockquote>,
@@ -239,10 +239,10 @@ export function Markdown({ source }: { source: string }): React.ReactElement {
       blocks.push(
         <ol
           key={nextKey()}
-          className="my-5 ml-6 list-decimal space-y-2 marker:text-brand-500"
+          className="my-6 ml-6 list-decimal space-y-2 marker:text-brand-500"
         >
           {items.map((it) => (
-            <li key={nextKey()} className="pl-1 leading-relaxed">
+            <li key={nextKey()} className="pl-1 leading-[1.9]">
               {parseInline(it)}
             </li>
           ))}
@@ -261,10 +261,10 @@ export function Markdown({ source }: { source: string }): React.ReactElement {
       blocks.push(
         <ul
           key={nextKey()}
-          className="my-5 ml-6 list-disc space-y-2 marker:text-brand-500"
+          className="my-6 ml-6 list-disc space-y-2 marker:text-brand-500"
         >
           {items.map((it) => (
-            <li key={nextKey()} className="pl-1 leading-relaxed">
+            <li key={nextKey()} className="pl-1 leading-[1.9]">
               {parseInline(it)}
             </li>
           ))}
@@ -290,7 +290,7 @@ export function Markdown({ source }: { source: string }): React.ReactElement {
       i++;
     }
     blocks.push(
-      <p key={nextKey()} className="my-5 leading-[1.85] text-slate-700 dark:text-slate-300">
+      <p key={nextKey()} className="my-6 text-[1.05rem] leading-[1.9] text-slate-700 dark:text-slate-300">
         {parseInline(para.join(' '))}
       </p>,
     );
