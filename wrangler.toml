@@ -1,0 +1,9 @@
+# Cloudflare Worker 配置（项目名需与 Cloudflare 上的 Worker 一致）
+name = "maodianblog"
+main = "worker/index.js"
+compatibility_date = "2025-01-01"
+
+# 把 npm run build 产出的 dist/ 作为静态资源托管
+[assets]
+directory = "./dist"
+binding = "ASSETS"
