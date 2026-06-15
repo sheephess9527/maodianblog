@@ -7,6 +7,7 @@ import PostPage from './components/PostPage';
 import TagPage from './components/TagPage';
 import AboutPage from './components/AboutPage';
 import NotFound from './components/NotFound';
+import RefreshButton from './components/RefreshButton';
 
 const App: React.FC = () => {
   const route = useHashRoute();
@@ -32,6 +33,7 @@ const App: React.FC = () => {
       <Header />
       <main className="w-full flex-1">{renderRoute()}</main>
       <Footer />
+      <RefreshButton />
     </div>
   );
 };
