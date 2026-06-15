@@ -9,24 +9,23 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-16">
-      {/* 杂志刊头 */}
-      <section className="mb-12 border-b border-slate-900/10 pb-10 dark:border-white/10">
-        <h1 className="text-5xl font-black tracking-tighter text-slate-900 dark:text-white sm:text-7xl">
-          {siteConfig.title}
-        </h1>
-        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-500 dark:text-slate-400 sm:text-xl">
-          {siteConfig.description}
+      {/* 刊头：用 slogan 作为主视觉，不重复站名 */}
+      <section className="mb-14 border-b border-slate-900/10 pb-12 dark:border-white/10">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
+          {siteConfig.subtitle}
         </p>
+        <h1 className="mt-5 max-w-3xl text-3xl font-bold leading-[1.25] tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+          {siteConfig.description}
+        </h1>
         {tags.length > 0 && (
-          <div className="mt-6 flex flex-wrap gap-x-4 gap-y-1">
-            {tags.map(({ tag, count }) => (
+          <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2">
+            {tags.map(({ tag }) => (
               <a
                 key={tag}
                 href={`#/tag/${encodeURIComponent(tag)}`}
-                className="text-sm font-medium text-slate-400 transition-colors hover:text-brand-600 dark:hover:text-brand-400"
+                className="text-sm text-slate-400 transition-colors hover:text-brand-600 dark:hover:text-brand-400"
               >
                 {tag}
-                <span className="ml-0.5 text-xs text-slate-300 dark:text-slate-600">{count}</span>
               </a>
             ))}
           </div>
