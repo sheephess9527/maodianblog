@@ -2,11 +2,22 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="锚点 —— 用系统对抗混乱，用逻辑重塑日常。记录系统思维、决策方法与效率工具。" />
     <meta name="author" content="锚点" />
     <link rel="canonical" href="https://kimi0315.ccwu.cc" />
     <title>锚点 · Anchor</title>
+
+    <!-- PWA / 添加到主屏幕 -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="锚点" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
