@@ -1,0 +1,15 @@
+# Cloudflare Pages 缓存策略
+
+# 带内容哈希的静态资源：文件名每次构建都会变，可以放心长期缓存
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 图标等静态文件：缓存一天
+/icons/*
+  Cache-Control: public, max-age=86400
+
+# HTML 入口必须每次都重新校验，否则旧 HTML 会指向已被新部署删掉的 JS，导致白屏
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
