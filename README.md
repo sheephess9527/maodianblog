@@ -36,7 +36,17 @@ npm run preview    # 本地预览构建结果
 
 把 `dist/` 目录上传到任意静态托管平台即可。
 
-> 部署到 GitHub Pages 的子路径时，记得把 `vite.config.ts` 里的 `base` 改成 `'/你的仓库名/'`。
+### 部署到 Cloudflare Pages（推荐，支持自有域名）
+
+1. 登录 [Cloudflare 控制台](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
+2. 选择本仓库（支持私有仓库，无需公开代码），构建设置：
+   - **Framework preset**：`Vite`
+   - **Build command**：`npm run build`
+   - **Build output directory**：`dist`
+3. 点击 **Save and Deploy**，几分钟后会得到一个 `xxx.pages.dev` 网址
+4. 绑定自有域名：进入该 Pages 项目 → **Custom domains** → **Set up a domain** → 输入你的域名，按提示添加 DNS 记录（域名在 Cloudflare 托管时会自动配置）
+
+> 之后每次推送到 `main` 分支，Cloudflare 会自动重新构建并部署。
 
 ## ✍️ 如何添加 / 修改内容
 
