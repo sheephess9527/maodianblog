@@ -3,13 +3,16 @@ import { getPostBySlug } from '../data/posts';
 import { formatDate } from '../utils/formatDate';
 import { estimateReadingMinutes } from '../utils/readingTime';
 import { useReadingPosition } from '../utils/useReadingPosition';
+import { useViewCount } from '../utils/useViewCount';
 import { Markdown } from './Markdown';
 import NotFound from './NotFound';
-import { ArrowLeftIcon, ClockIcon } from './Icons';
+import { ArrowLeftIcon, ClockIcon, EyeIcon } from './Icons';
 
 const PostPage: React.FC<{ slug: string }> = ({ slug }) => {
   // 恢复 / 记录这篇文章的阅读位置（Hook 必须在任何 return 之前调用）。
   useReadingPosition(slug);
+  // 记录并获取这篇文章的阅读量（Hook 必须在任何 return 之前调用）。
+  const views = useViewCount(slug);
 
   const post = getPostBySlug(slug);
   if (!post) return <NotFound />;
@@ -39,6 +42,15 @@ const PostPage: React.FC<{ slug: string }> = ({ slug }) => {
             <ClockIcon className="h-3.5 w-3.5" />
             {minutes} 分钟阅读
           </span>
+          {views !== null && (
+            <>
+              <span>·</span>
+              <span className="flex items-center gap-1">
+                <EyeIcon className="h-3.5 w-3.5" />
+                {views.toLocaleString()} 次阅读
+              </span>
+            </>
+          )}
         </div>
         {post.tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-x-3">
