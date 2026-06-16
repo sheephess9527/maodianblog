@@ -3,8 +3,13 @@ import { Post } from '../types';
 import { formatDate } from '../utils/formatDate';
 
 // 杂志网格卡片。featured=true 时为首页头条大卡（图文左右排）。
-const PostCard: React.FC<{ post: Post; featured?: boolean }> = ({ post, featured = false }) => {
-  const category = post.tags[0];
+// category：可指定显示的板块标签（在某个栏目下展示时传入，保证标签与当前栏目一致）。
+const PostCard: React.FC<{ post: Post; featured?: boolean; category?: string }> = ({
+  post,
+  featured = false,
+  category: categoryProp,
+}) => {
+  const category = categoryProp ?? post.tags[0];
 
   const Cover = (
     <div

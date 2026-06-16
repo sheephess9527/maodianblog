@@ -71,7 +71,7 @@ const HomePage: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
                   {postsInSection.map((post) => (
-                    <PostCard key={post.slug} post={post} />
+                    <PostCard key={post.slug} post={post} category={section} />
                   ))}
                 </div>
               </section>
