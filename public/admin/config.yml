@@ -4,7 +4,7 @@
 
 backend:
   name: github
-  repo: sheephess9527/-
+  repo: sheephess9527/maodianblog
   branch: main
 
 # 后台界面语言
