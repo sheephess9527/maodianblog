@@ -67,6 +67,64 @@ ${items}
     },
   };
 }
+// ── 静态文章 OG 页生成插件 ───────────────────────────────
+function articleMetaPlugin(): Plugin {
+  return {
+    name: 'generate-article-meta',
+    apply: 'build',
+    closeBundle() {
+      const postsDir = path.resolve(__dirname, 'content/posts');
+      const outDir   = path.resolve(__dirname, 'dist');
+      if (!fs.existsSync(postsDir)) return;
+
+      const base = 'https://www.maodian.uk';
+
+      const articles = fs
+        .readdirSync(postsDir)
+        .filter((f) => f.endsWith('.md'))
+        .map((f) => {
+          const slug = f.replace(/\.md$/, '');
+          const data = parseFm(fs.readFileSync(path.join(postsDir, f), 'utf-8'));
+          return { slug, ...data };
+        })
+        .filter((p) => p.title);
+
+      for (const p of articles) {
+        const url     = `${base}/#/post/${p.slug}`;
+        const title   = `${p.title} · 锚点`;
+        const desc    = p.excerpt ?? '用系统对抗混乱，用逻辑重塑日常。';
+        const img     = p.cover ?? `${base}/icons/icon-512.png`;
+        const dir     = path.join(outDir, 'post', p.slug);
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(
+          path.join(dir, 'index.html'),
+          `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<meta name="description" content="${desc}">
+<meta property="og:type" content="article">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${desc}">
+<meta property="og:image" content="${img}">
+<meta property="og:url" content="${url}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${desc}">
+<meta name="twitter:image" content="${img}">
+<meta http-equiv="refresh" content="0;url=${url}">
+<script>location.replace('${url}');</script>
+</head>
+<body></body>
+</html>`,
+          'utf-8',
+        );
+      }
+      console.log(`✓ ${articles.length} article meta pages generated`);
+    },
+  };
+}
 // ─────────────────────────────────────────────────────────
 
 export default defineConfig({
@@ -75,7 +133,7 @@ export default defineConfig({
     port: 3000,
     host: '0.0.0.0',
   },
-  plugins: [react(), rssPlugin()],
+  plugins: [react(), rssPlugin(), articleMetaPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),

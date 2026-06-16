@@ -32,7 +32,7 @@ const PostPage: React.FC<{ slug: string }> = ({ slug }) => {
   const headings = extractHeadings(post.content);
 
   const [copied, setCopied] = useState(false);
-  const shareUrl = `https://www.maodian.uk/#/post/${slug}`;
+  const shareUrl = `https://www.maodian.uk/post/${slug}`;
 
   const handleShare = async () => {
     if (navigator.share) {

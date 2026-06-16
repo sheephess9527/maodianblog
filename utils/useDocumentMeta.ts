@@ -28,7 +28,7 @@ export function useDocumentMeta({ title, description, image, slug, type = 'websi
     const t = title ? `${title} · 锚点` : DEFAULT_TITLE;
     const d = description ?? DEFAULT_DESC;
     const img = image ?? DEFAULT_IMG;
-    const url = slug ? `${SITE}/#/post/${slug}` : SITE;
+    const url = slug ? `${SITE}/post/${slug}` : SITE;
 
     document.title = t;
     setMeta('name', 'description', d);
