@@ -3,6 +3,10 @@ import { sortedPosts, getAllTags } from '../data/posts';
 import { siteConfig } from '../data/site';
 import PostCard from './PostCard';
 
+// 首页展示的栏目顺序（其余标签仍可通过标签行进入）
+const SECTIONS = ['系统思维', '决策', '效率', '思考'];
+const PER_SECTION = 3;
+
 const HomePage: React.FC = () => {
   const [featured, ...rest] = sortedPosts;
   const tags = getAllTags();
@@ -40,14 +44,41 @@ const HomePage: React.FC = () => {
       {/* 头条大卡 */}
       {featured && <PostCard post={featured} featured />}
 
-      {/* 网格列表 */}
-      {rest.length > 0 && (
-        <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-          {rest.map((post) => (
-            <PostCard key={post.slug} post={post} />
-          ))}
-        </div>
-      )}
+      {/* 按栏目分区展示，每个栏目只放最新几篇，更多进栏目页 */}
+      <div className="mt-16 space-y-16">
+        {(() => {
+          const seen = new Set<string>();
+          if (featured) seen.add(featured.slug);
+          return SECTIONS.map((section) => {
+            const postsInSection = rest
+              .filter((p) => p.tags.includes(section) && !seen.has(p.slug))
+              .slice(0, PER_SECTION);
+            if (postsInSection.length === 0) return null;
+            postsInSection.forEach((p) => seen.add(p.slug));
+
+            return (
+              <section key={section}>
+                <div className="mb-8 flex items-baseline justify-between border-b border-slate-900/10 pb-3 dark:border-white/10">
+                  <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    {section}
+                  </h2>
+                  <a
+                    href={`#/tag/${encodeURIComponent(section)}`}
+                    className="text-sm text-slate-400 transition-colors hover:text-brand-600 dark:hover:text-brand-400"
+                  >
+                    查看全部 →
+                  </a>
+                </div>
+                <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                  {postsInSection.map((post) => (
+                    <PostCard key={post.slug} post={post} />
+                  ))}
+                </div>
+              </section>
+            );
+          });
+        })()}
+      </div>
     </div>
   );
 };
