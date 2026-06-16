@@ -2,11 +2,15 @@ import React from 'react';
 import { getPostBySlug } from '../data/posts';
 import { formatDate } from '../utils/formatDate';
 import { estimateReadingMinutes } from '../utils/readingTime';
+import { useReadingPosition } from '../utils/useReadingPosition';
 import { Markdown } from './Markdown';
 import NotFound from './NotFound';
 import { ArrowLeftIcon, ClockIcon } from './Icons';
 
 const PostPage: React.FC<{ slug: string }> = ({ slug }) => {
+  // 恢复 / 记录这篇文章的阅读位置（Hook 必须在任何 return 之前调用）。
+  useReadingPosition(slug);
+
   const post = getPostBySlug(slug);
   if (!post) return <NotFound />;
 

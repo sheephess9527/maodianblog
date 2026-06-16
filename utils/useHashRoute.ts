@@ -44,7 +44,9 @@ export function useHashRoute(): Route {
 
   // 在新页面内容渲染完成后再滚动到顶部（而不是在 hashchange 时立即滚动，
   // 那时旧内容还在，滚动会作用在错误的布局上）。
+  // 文章页除外：它由 PostPage 自己恢复用户上次的阅读位置。
   useEffect(() => {
+    if (route.name === 'post') return;
     window.scrollTo(0, 0);
   }, [route.name, (route as { slug?: string }).slug, (route as { tag?: string }).tag]);
 
