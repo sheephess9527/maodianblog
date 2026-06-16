@@ -1,0 +1,77 @@
+# 锚点 · 写作后台（Sveltia CMS）配置
+# 登录方式：GitHub Personal Access Token（点登录按钮旁的小箭头 → “使用个人访问令牌”）
+# 无需 OAuth app，也无需任何服务端配置。
+
+backend:
+  name: github
+  repo: sheephess9527/-
+  branch: main
+
+# 后台界面语言
+locale: zh_Hans
+
+# 上传的图片会提交进仓库的 public/images/uploads，
+# 构建后对外访问路径为 /images/uploads（写进文章 frontmatter 的 cover）。
+media_folder: public/images/uploads
+public_folder: /images/uploads
+
+collections:
+  - name: posts
+    label: 文章
+    label_singular: 文章
+    description: 在这里写新文章、编辑或删除已有文章。保存后会自动提交到 GitHub，网站约 1–2 分钟后自动更新。
+    folder: content/posts
+    create: true
+    delete: true
+    extension: md
+    # 站点用的是极简 YAML frontmatter 解析器，这里固定用 --- 包裹的 YAML，保证兼容。
+    format: yaml-frontmatter
+    # 用“网址标识”字段作为文件名 / URL，避免中文标题生成乱码 slug。
+    slug: "{{fields.slug}}"
+    summary: "{{title}}　·　{{date}}"
+    sortable_fields:
+      - date
+      - title
+    fields:
+      - label: 标题
+        name: title
+        widget: string
+
+      - label: 网址标识
+        name: slug
+        widget: string
+        hint: 英文小写、用连字符连接，例如 feedback-loop。它会成为文章网址的一部分，发布后不要再改。
+
+      - label: 日期
+        name: date
+        widget: datetime
+        date_format: YYYY-MM-DD
+        time_format: false
+        format: YYYY-MM-DD
+        hint: 不填则默认今天。
+
+      - label: 作者
+        name: author
+        widget: string
+        default: 锚点
+
+      - label: 摘要
+        name: excerpt
+        widget: string
+        hint: 一句话概括，显示在首页和栏目卡片上。请保持单行。
+
+      - label: 标签
+        name: tags
+        widget: list
+        default: []
+        hint: 第一个标签会作为卡片上的分类显示。主栏目：系统思维、决策、效率、思考。
+
+      - label: 封面图
+        name: cover
+        widget: image
+        required: false
+        hint: 建议横版图片；留空则用标题占位。也可填外链，例如 https://picsum.photos/seed/99/1200/800
+
+      - label: 正文
+        name: body
+        widget: markdown
