@@ -83,8 +83,8 @@ function rssPlugin(): Plugin {
           (p) => `
     <item>
       <title><![CDATA[${p.title}]]></title>
-      <link>${base}/#/post/${p.slug}</link>
-      <guid isPermaLink="true">${base}/#/post/${p.slug}</guid>
+      <link>${base}/post/${p.slug}</link>
+      <guid isPermaLink="true">${base}/post/${p.slug}</guid>
       <description><![CDATA[${p.excerpt ?? ''}]]></description>
       <pubDate>${new Date(String(p.date)).toUTCString()}</pubDate>
     </item>`,
@@ -133,7 +133,7 @@ function articleMetaPlugin(): Plugin {
         .filter((p) => p.title);
 
       for (const p of articles) {
-        const url     = `${base}/#/post/${p.slug}`;
+        const url     = `${base}/post/${p.slug}`;
         const title   = `${p.title} · 锚点`;
         const desc    = p.excerpt ?? '用系统对抗混乱，用逻辑重塑日常。';
         const img     = p.cover ?? `${base}/icons/icon-512.png`;

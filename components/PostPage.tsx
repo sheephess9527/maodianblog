@@ -9,7 +9,7 @@ import { Markdown } from './Markdown';
 import NotFound from './NotFound';
 import TableOfContents from './TableOfContents';
 import Comments from './Comments';
-import { ArrowLeftIcon, ClockIcon, EyeIcon, ShareIcon, CheckIcon } from './Icons';
+import { ArrowLeftIcon, ClockIcon, EyeIcon, ShareIcon, CheckIcon, ListIcon, XIcon } from './Icons';
 
 const PostPage: React.FC<{ slug: string }> = ({ slug }) => {
   useReadingPosition(slug);
@@ -50,6 +50,7 @@ const PostPage: React.FC<{ slug: string }> = ({ slug }) => {
   const headings = content ? extractHeadings(content) : [];
 
   const [copied, setCopied] = useState(false);
+  const [isMobileTocOpen, setIsMobileTocOpen] = useState(false);
   const shareUrl = `https://www.maodian.uk/post/${slug}`;
 
   const handleShare = async () => {
@@ -235,6 +236,35 @@ const PostPage: React.FC<{ slug: string }> = ({ slug }) => {
       </article>
 
       {/* 悬浮目录：内容加载完后出现 */}
+      {/* 移动端目录按钮 */}
+      {headings.length >= 2 && (
+        <button
+          onClick={() => setIsMobileTocOpen(true)}
+          className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white shadow-lg xl:hidden dark:border-slate-700 dark:bg-slate-900"
+          aria-label="打开目录"
+        >
+          <ListIcon className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+        </button>
+      )}
+
+      {/* 移动端目录抽屉 */}
+      {isMobileTocOpen && headings.length >= 2 && (
+        <div className="fixed inset-0 z-[60] xl:hidden" onClick={() => setIsMobileTocOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div 
+            className="absolute bottom-0 left-0 right-0 max-h-[70vh] overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-sm font-semibold uppercase tracking-widest text-slate-400">目录</span>
+              <button onClick={() => setIsMobileTocOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <XIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <TableOfContents headings={headings} />
+          </div>
+        </div>
+      )}
       {headings.length >= 2 && (
         <div className="fixed right-4 top-28 hidden w-52 xl:block 2xl:right-8">
           <div className="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
