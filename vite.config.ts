@@ -133,7 +133,10 @@ function articleMetaPlugin(): Plugin {
         .filter((p) => p.title);
 
       for (const p of articles) {
-        const url     = `${base}/post/${p.slug}`;
+        // og:url 用干净的分享地址；跳转目标必须用 hash 路由，
+        // 否则会跳回这个静态页自身造成无限重定向（闪屏打不开）。
+        const url      = `${base}/post/${p.slug}`;
+        const redirect = `${base}/#/post/${p.slug}`;
         const title   = `${p.title} · 锚点`;
         const desc    = p.excerpt ?? '用系统对抗混乱，用逻辑重塑日常。';
         const img     = p.cover ?? `${base}/icons/icon-512.png`;
@@ -156,8 +159,8 @@ function articleMetaPlugin(): Plugin {
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${desc}">
 <meta name="twitter:image" content="${img}">
-<meta http-equiv="refresh" content="0;url=${url}">
-<script>location.replace('${url}');</script>
+<meta http-equiv="refresh" content="0;url=${redirect}">
+<script>location.replace('${redirect}');</script>
 </head>
 <body></body>
 </html>`,
