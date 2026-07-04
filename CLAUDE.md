@@ -34,7 +34,7 @@ npm run preview      # 预览构建结果
    正文……
    ```
 3. **封面必填**。`N` 取比现有最大 seed 大的数：
-   `rg -oN --no-filename "seed/(\d+)/" content/posts -r '$1' | sort -n | tail -1`（当前最大 **757**，依次往后取）。缺封面卡片会退化成纯标题块。
+   `rg -oN --no-filename "seed/(\d+)/" content/posts -r '$1' | sort -n | tail -1`（当前最大 **763**，依次往后取）。缺封面卡片会退化成纯标题块。
 4. `npm run build` 验证无错。
 5. 提交并推送（见下）。
 
@@ -46,18 +46,27 @@ npm run preview      # 预览构建结果
 - 调性：发人深省、引共鸣；常借经典概念（梅多斯、卡尼曼、芒格、马克·吐温等）切入再落到日常。
 - 篇幅：每篇约 250–400 行 Markdown，读约 3–5 分钟。
 
-## 推送（含限流应急 ⚠️）
-正常：`git push origin main`。
+## 推送 ⚠️ 最容易踩坑的一节，务必先读
 
-**已知坑**：同一会话频繁推送会触发 GitHub 对 `git push` 端点的**二级频率限制 → 403**（但 `git fetch`/读、token 权限都正常；不是 token 失效、不是被墙）。
+**优先用 GitHub MCP 工具推送**（`mcp__github__push_files` / `create_or_update_file` 等），**owner=`sheephess9527`，repo=`-`**（注意：仓库名就是一个英文横杠 `-`，不是 `maodianblog`——两者是同一个仓库，`-` 是这类托管会话里对当前项目仓库的别名）。这是本会话被正式授权的写入通道，最稳定。
 
-**应急方案**：改用 **GitHub Contents API**（不同端点，不受此限流）：
-- 对每个文件 `PUT /repos/sheephess9527/maodianblog/contents/<路径>`，body `{"message","content"(base64),"branch":"main"}`。
-- **更新已有文件**要先 `GET …/contents/<路径>?ref=main` 取 `sha` 一并带上。
-- 提交后 `git fetch` + `git reset --hard FETCH_HEAD` 同步本地。
-- 限流通常一小时内自解除。
+```
+mcp__github__push_files({
+  owner: "sheephess9527",
+  repo: "-",              // 不是 "maodianblog"
+  branch: "main",
+  files: [{ path: "content/posts/xxx.md", content: "..." }, ...],
+  message: "commit message",
+})
+```
 
-凭据：需有 push 权限的 **GitHub Token**，由会话环境提供，**绝不写进仓库/CLAUDE.md/README**。
+**为什么不能直接 `git push` 或裸调 GitHub REST API**：本环境的 agent 代理只放行「会话被授权的写入路径」（即 GitHub MCP 工具，作用域限定在 repo=`-`）。如果改用硬编码 token 直连 `git push https://TOKEN@github.com/sheephess9527/maodianblog.git` 或裸 `curl` 调 Contents API，会被代理判定为**绕过授权通道的写入**，稳定返回 `403 Write access to this GitHub API path is not permitted through this proxy`（这不是 GitHub 限流，重试无用）。
+
+`git push origin main`（用本地已配置的 `origin`，走代理的合法 git 中继）理论上也可行，但曾实测对该中继的 `git-receive-pack` 返回 503——**优先选 GitHub MCP 工具**，别再折腾直连方案。
+
+排查心法：如果 push 各种方式都失败，先 `git fetch origin main`（只读）确认 token/网络本身没问题，再检查是不是在用被禁止的直连写法，而不是当成限流反复重试。
+
+凭据：写入完全通过 MCP 工具的会话授权完成，**不需要、也不要**把 GitHub Token 硬编码进命令行或写进仓库/CLAUDE.md/README。
 
 ## 架构红线（别踩，踩了线上会坏）
 - 🚫 **别把静态分享页改回「空壳 + 跳转」**。`vite.config.ts` 的 `articleMetaPlugin` 把每篇文章渲染成**完整自包含静态 HTML**（内联样式、无跳转、不依赖 SPA）。这是根治**微信打开分享链接白屏**的关键——微信老旧 WebView 跑不起整个 SPA。改回去会重现白屏/死循环。
