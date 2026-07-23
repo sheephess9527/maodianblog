@@ -3,6 +3,8 @@ import path from 'path';
 import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 // ── 公共 frontmatter 解析 ─────────────────────────────────
 // 简版：只处理 key: value（RSS / OG 插件用）
 function parseFm(raw: string): Record<string, string> {
@@ -390,7 +392,7 @@ export default defineConfig({
     port: 3000,
     host: '0.0.0.0',
   },
-  plugins: [react(), postsMetaPlugin(), rssPlugin(), articleMetaPlugin()],
+  plugins: [react(), postsMetaPlugin(), rssPlugin(), articleMetaPlugin(), cloudflare()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
