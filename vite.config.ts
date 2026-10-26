@@ -146,6 +146,34 @@ function mdToHtml(src: string): string {
   return out.join('\n');
 }
 
+// ── sitemap.xml：首页 + 每篇文章的静态页 ─────────────────
+function sitemapPlugin(): Plugin {
+  return {
+    name: 'generate-sitemap',
+    apply: 'build',
+    closeBundle() {
+      const postsDir = path.resolve(__dirname, 'content/posts');
+      const outDir   = path.resolve(__dirname, 'dist');
+      if (!fs.existsSync(postsDir) || !fs.existsSync(outDir)) return;
+      const base = 'https://www.maodian.uk';
+      const posts = fs
+        .readdirSync(postsDir)
+        .filter((f) => f.endsWith('.md'))
+        .map((f) => ({ slug: f.replace(/\.md$/, ''), ...parseFm(fs.readFileSync(path.join(postsDir, f), 'utf-8')) }))
+        .filter((p) => p.title && p.date)
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      const day = (d: string) => new Date(String(d)).toISOString().slice(0, 10);
+      const urls = [
+        `  <url><loc>${base}/</loc>${posts[0] ? `<lastmod>${day(posts[0].date)}</lastmod>` : ''}</url>`,
+        ...posts.map((p) => `  <url><loc>${base}/post/${p.slug}/</loc><lastmod>${day(p.date)}</lastmod></url>`),
+      ];
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
+      fs.writeFileSync(path.join(outDir, 'sitemap.xml'), xml, 'utf-8');
+      console.log(`✓ sitemap.xml generated (${urls.length} urls)`);
+    },
+  };
+}
+
 function rssPlugin(): Plugin {
   return {
     name: 'generate-rss',
@@ -390,7 +418,7 @@ export default defineConfig({
     port: 3000,
     host: '0.0.0.0',
   },
-  plugins: [react(), postsMetaPlugin(), rssPlugin(), articleMetaPlugin()],
+  plugins: [react(), postsMetaPlugin(), rssPlugin(), sitemapPlugin(), articleMetaPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
