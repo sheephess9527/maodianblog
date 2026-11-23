@@ -2,7 +2,7 @@
 
 > 用系统对抗混乱，用逻辑重塑日常。
 
-一个聚焦**系统思维、决策与效率**的个人博客，现代工业 / 生产力风格（效率蓝 + 活力橙），基于 **React 19 + Vite + Tailwind CSS** 构建，部署在 **Cloudflare Pages**，线上地址 [www.maodian.uk](https://www.maodian.uk)。
+一个聚焦**系统思维、决策与效率**的个人博客，现代工业 / 生产力风格（效率蓝 + 活力橙），基于 **React 19 + Vite + Tailwind CSS** 构建，部署在 **Cloudflare Workers**，线上地址 [www.maodian.uk](https://www.maodian.uk)。
 
 构建产物是**纯静态文件**，无服务端、无数据库。
 
@@ -13,7 +13,7 @@
 > 这一节让任何新的 AI 或新登录的账号都能立刻接手。**先读完这一节再动手。**
 
 ### 一句话现状
-个人中文博客，仓库 `sheephess9527/maodianblog`，开发分支 `main`，推到 `main` 后 **Cloudflare Pages 自动构建并部署**到 [www.maodian.uk](https://www.maodian.uk)，约 1–2 分钟生效。`dist/` 由 Cloudflare 在云端构建，**无需提交**。目前 88+ 篇文章。
+个人中文博客，仓库 `sheephess9527/maodianblog`，开发分支 `main`，推到 `main` 后 **Cloudflare Workers Builds 自动构建并部署**到 [www.maodian.uk](https://www.maodian.uk)，约 1–2 分钟生效。`dist/` 由 Cloudflare 在云端构建，**无需提交**。目前 88+ 篇文章。
 
 ### 凭据
 推送需要一个对该仓库有 **push 权限的 GitHub Personal Access Token**。它通过会话环境提供，**绝不写进仓库**。新接手者若没有，向仓库主人索取。
@@ -154,17 +154,13 @@ npm run preview    # 本地预览构建结果
 
 性能相关单元测试：`node --experimental-strip-types --test tests/performance.test.mjs`（Node 22+）。跑移动 Lighthouse 时，新旧构建须使用相同的 gzip / Brotli 静态服务，三次取中位数；默认模拟限速的 LCP 与 breakdown 实测时间轴须分别标注，不能相加混用。
 
-### 部署到 Cloudflare Pages
+### 部署到 Cloudflare Workers
 
-1. [Cloudflare 控制台](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-2. 选择本仓库（支持私有仓库），构建设置：
-   - **Framework preset**：`Vite`
-   - **Build command**：`npm run build`
-   - **Build output directory**：`dist`
-3. **Save and Deploy**，几分钟后得到 `xxx.pages.dev` 网址
-4. 绑定自有域名：项目 → **Custom domains** → **Set up a domain**
+生产站点由 Workers Builds 构建，构建命令为 `npm run build`，`wrangler.jsonc` 把 `dist/` 配置为静态资源目录，无需 Worker 脚本。缓存策略见 `public/_headers`（HTML 入口禁缓存以避免白屏，带哈希的静态资源长期缓存）。
 
-> 之后每次推送到 `main` 分支，Cloudflare 会自动重新构建并部署。缓存策略见 `public/_headers`（HTML 入口禁缓存以避免白屏，带哈希的静态资源长期缓存）。
+Vite 会把 `public/404.html` 复制到 `dist/404.html`；`assets.not_found_handling = "404-page"` 让未匹配的请求返回 HTTP 404 和该页面，而不是以 200 返回首页。标签（`/#/tag/标签`）、关于（`/#/about`）和首页的搜索弹窗仍由 SPA 处理，文章分享页和已有静态资源照常提供。
+
+验证路由：先运行 `npm run build`，再运行 `npx wrangler dev --port 8787`，在另一终端运行 `node --test tests/routing.test.mjs`。普通的 Vite 预览不能验证 Cloudflare 的 404 状态码。
 
 ## 💬 评论区配置（giscus）
 
