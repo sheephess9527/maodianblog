@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { sortedPosts } from '../data/posts';
 import { Post } from '../types';
 import { SearchIcon, XIcon } from './Icons';
+import { loadFullFonts } from '../utils/loadFullFonts';
+import searchText from 'virtual:posts-search';
 
 interface Props {
   onClose: () => void;
@@ -15,7 +17,7 @@ function search(query: string): Post[] {
       p.title.toLowerCase().includes(q) ||
       p.excerpt.toLowerCase().includes(q) ||
       p.tags.some((t) => t.toLowerCase().includes(q)) ||
-      p.searchText.toLowerCase().includes(q),
+      (searchText[p.slug] ?? '').toLowerCase().includes(q),
   ).slice(0, 8);
 }
 
@@ -26,6 +28,7 @@ const SearchModal: React.FC<Props> = ({ onClose }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(loadFullFonts, []);
 
   useEffect(() => {
     setResults(search(query));

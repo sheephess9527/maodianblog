@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import HomePage from './components/HomePage';
 import NotFound from './components/NotFound';
 import RefreshButton from './components/RefreshButton';
+import { loadFullFonts } from './utils/loadFullFonts';
 
 const PostPage = lazy(() => import('./components/PostPage'));
 const TagPage = lazy(() => import('./components/TagPage'));
@@ -12,6 +13,10 @@ const AboutPage = lazy(() => import('./components/AboutPage'));
 
 const App: React.FC = () => {
   const route = useHashRoute();
+
+  useEffect(() => {
+    if (route.name !== 'home') loadFullFonts();
+  }, [route.name]);
 
   // 非文章页的 document.title（文章页由 PostPage 自己设）
   useEffect(() => {

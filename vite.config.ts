@@ -2,6 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { homeSections } from './utils/homeSections';
+import { cardCover } from './utils/cardCover';
+import { siteConfig } from './data/site';
 
 // ── 公共 frontmatter 解析 ─────────────────────────────────
 // 简版：只处理 key: value（RSS / OG 插件用）
@@ -363,50 +366,61 @@ ${bodyHtml}
 function postsMetaPlugin(): Plugin {
   const virtualId = 'virtual:posts-meta';
   const resolvedId = '\0' + virtualId;
+  const searchId = 'virtual:posts-search';
+  const readPosts = () => {
+    const postsDir = path.resolve(__dirname, 'content/posts');
+    if (!fs.existsSync(postsDir)) return [];
+    return fs.readdirSync(postsDir)
+      .filter((f) => f.endsWith('.md'))
+      .map((f) => {
+        const slug = f.replace(/\.md$/, '');
+        const raw = fs.readFileSync(path.join(postsDir, f), 'utf-8');
+        const fm = parseFmFull(raw);
+        const body = /^---[\s\S]*?\n---\r?\n?([\s\S]*)$/.exec(raw)?.[1].trim() ?? '';
+        const chineseChars = (body.match(/[一-龥]/g) ?? []).length;
+        const englishWords = (body.match(/[A-Za-z0-9]+/g) ?? []).length;
+        return {
+          slug,
+          title: String(fm.title ?? slug),
+          excerpt: String(fm.excerpt ?? ''),
+          date: String(fm.date ?? ''),
+          author: String(fm.author ?? '锚点'),
+          tags: Array.isArray(fm.tags) ? fm.tags : fm.tags ? [String(fm.tags)] : [],
+          cover: fm.cover ? String(fm.cover) : undefined,
+          readingMinutes: Math.max(1, Math.round(chineseChars / 350 + englishWords / 200)),
+          searchText: toSearchText(body),
+        };
+      }).filter((p) => p.title);
+  };
   return {
     name: 'posts-meta',
     resolveId(id) {
       if (id === virtualId) return resolvedId;
+      if (id === searchId) return '\0' + searchId;
+    },
+    transformIndexHtml(html) {
+      const posts = readPosts().sort((a, b) => b.date.localeCompare(a.date));
+      const selected = [posts[0], ...homeSections(posts).flatMap((section) => section.posts)].filter(Boolean);
+      const literals = ['HomePage', 'Header', 'Footer', 'ThemeToggle', 'RefreshButton'].map((name) =>
+        fs.readFileSync(path.resolve(__dirname, `components/${name}.tsx`), 'utf-8'),
+      ).join('');
+      const text = [...new Set([
+        JSON.stringify(siteConfig), literals, '0123456789 年月日 © →',
+        ...posts.flatMap((post) => post.tags),
+        ...selected.flatMap((post) => [post.title, post.excerpt, post.date, ...post.tags]),
+      ].join(''))].sort().join('');
+      const fullHref = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;700;900&display=swap';
+      const subsetHref = fullHref + '&text=' + encodeURIComponent(text);
+      const homeHref = subsetHref.length < 16000 ? subsetHref : fullHref;
+      const preload = posts[0]?.cover ? `<link rel="preload" as="image" fetchpriority="high" href="${escapeAttr(cardCover(posts[0].cover))}">` : '';
+      return html.replace('<!-- homepage-resources -->', `${preload}
+        <link id="site-fonts" data-full-href="${escapeAttr(fullHref)}" href="${escapeAttr(homeHref)}" rel="stylesheet" media="print" onload="this.media='all'">
+        <script>if (location.hash && !/^#\\/?$/.test(location.hash)) { var fonts = document.getElementById('site-fonts'); fonts.href = fonts.dataset.fullHref; }</script>`);
     },
     load(id) {
+      if (id === '\0' + searchId) return `export default ${JSON.stringify(Object.fromEntries(readPosts().map((post) => [post.slug, post.searchText])))}`;
       if (id !== resolvedId) return;
-      const postsDir = path.resolve(__dirname, 'content/posts');
-      if (!fs.existsSync(postsDir)) return 'export default []';
-
-      const posts = fs
-        .readdirSync(postsDir)
-        .filter((f) => f.endsWith('.md'))
-        .map((f) => {
-          const slug = f.replace(/\.md$/, '');
-          const raw  = fs.readFileSync(path.join(postsDir, f), 'utf-8');
-          const fm   = parseFmFull(raw);
-
-          const bodyMatch = /^---[\s\S]*?\n---\r?\n?([\s\S]*)$/.exec(raw);
-          const body = bodyMatch ? bodyMatch[1].trim() : '';
-
-          const chineseChars  = (body.match(/[一-龥]/g) ?? []).length;
-          const englishWords  = (body.match(/[A-Za-z0-9]+/g)    ?? []).length;
-          const readingMinutes = Math.max(1, Math.round(chineseChars / 350 + englishWords / 200));
-
-          const tags = Array.isArray(fm.tags)
-            ? fm.tags as string[]
-            : fm.tags ? [String(fm.tags)] : [];
-
-          return {
-            slug,
-            title:          String(fm.title   ?? slug),
-            excerpt:        String(fm.excerpt  ?? ''),
-            date:           String(fm.date     ?? ''),
-            author:         String(fm.author   ?? '锚点'),
-            tags,
-            cover:          fm.cover ? String(fm.cover) : undefined,
-            readingMinutes,
-            searchText:     toSearchText(body),
-          };
-        })
-        .filter((p) => p.title);
-
-      return `export default ${JSON.stringify(posts)}`;
+      return `export default ${JSON.stringify(readPosts().map(({ searchText, ...post }) => post))}`;
     },
   };
 }

@@ -83,19 +83,20 @@
 
 ## 🏗️ 架构要点
 
-文章数量持续增长（目前 80+ 篇），因此采用了**元数据与正文分离 + 懒加载**的架构，保证主包体积不随文章数膨胀：
+文章数量持续增长，因此采用了**元数据、正文与搜索分离 + 懒加载**的架构，避免正文和搜索摘录挤占首页主包：
 
-- **`virtual:posts-meta`**（虚拟模块）：构建时由 `postsMetaPlugin` 读取所有 `.md` 的 frontmatter，生成轻量元数据（标题、日期、标签、摘要、阅读时长、用于搜索的纯文本），打包进主包供列表 / 搜索 / 路由使用。
-- **正文懒加载**：每篇文章的 Markdown 正文通过 `import.meta.glob` 拆成独立 JS chunk，由 `PostPage` 在打开文章时按需加载，加载期间显示骨架屏。
+- **`virtual:posts-meta`**（虚拟模块）：构建时由 `postsMetaPlugin` 读取所有 `.md` 的 frontmatter，生成列表元数据（标题、日期、标签、摘要、阅读时长），供列表 / 路由使用；正文的 500 字搜索摘录独立为 `virtual:posts-search`，只随搜索框下载，原搜索匹配范围和排序不变。主包不随正文大小增长，但仍随文章数量增长。
+- **正文懒加载**：每篇文章的 Markdown 正文通过 `import.meta.glob` 拆成独立 JS chunk，加载映射在 `data/postContent.ts`，由 `PostPage` 在打开文章时按需加载，加载期间显示骨架屏；首页不再包含整份正文 chunk 映射。
 - **页面与高亮分包**：文章、标签、关于和搜索按需加载，首页不再下载 highlight.js。现有代码围栏只有 `text` 与无标记，保留完整高亮语言集，避免改变无标记代码的自动检测结果。
 - **构建期 CSS**：Tailwind CSS v3 经 PostCSS / Autoprefixer 生成本地 CSS（`index.css` → Vite），沿用原配色、字体和 class 暗色模式；`tailwind.config.js` 扫描入口、组件、工具和数据目录。条件分支使用完整类名，无需 safelist；新增动态拼接须补 safelist。未启用 typography 插件，与原无插件 CDN 一致。
-- **封面与字体**：卡片使用同 seed 的 Picsum 600×400（`utils/cardCover.ts`），声明尺寸，头条高优先级，其余异步解码 / 懒加载；原始 1200×800 封面仍用于文章与 OG / 静态页。Google Fonts 保持原字体 / 字重及 `display=swap`，以 print/onload 异步样式和 noscript 兜底加载。
+- **封面与字体**：卡片使用同 seed 的 Picsum 600×400（`utils/cardCover.ts`），声明尺寸，头条高优先级且在入口 HTML 预加载，其余在距视口 300px 才设置 src，配合异步解码 / 原生懒加载（不支持 IntersectionObserver 时回退原生懒加载）。原始 1200×800 封面仍用于文章与 OG / 静态页。
+- **首页字体字集**：Google Fonts 保持原字体 / 全部字重及 `display=swap`；构建时与首页共用 `utils/homeSections.ts` 选文，汇总卡片、全部标签、站点配置及首页组件固定文字，生成 `text=` 字集请求，避免为几百个字下载大量 CJK 分片。新文章自动更新，不需要构建时联网；字集 URL 过长时回退完整字体。进入其他路由 / 打开搜索时恢复完整字体样式，保持正文与结果中的任意文字显示；仍使用 print/onload 异步样式和 noscript 兜底。新增首页文字来源须同步纳入字集。
 
 `vite.config.ts` 中的三个自定义插件：
 
 | 插件 | 作用 |
 | --- | --- |
-| `postsMetaPlugin` | 生成 `virtual:posts-meta` 元数据模块 |
+| `postsMetaPlugin` | 生成列表元数据 / 懒加载搜索摘录，注入首页头条预加载与字体字集 |
 | `rssPlugin` | 构建时生成 `dist/rss.xml`（最新 20 篇） |
 | `articleMetaPlugin` | 为每篇文章生成**自包含静态文章页** `dist/post/[slug]/index.html`（含正文 + OG meta，内含构建期 Markdown→HTML 渲染器） |
 
@@ -151,6 +152,8 @@ npm run build      # 产物输出到 dist/（含 rss.xml 与各文章 OG 页）
 npm run preview    # 本地预览构建结果
 ```
 
+性能相关单元测试：`node --experimental-strip-types --test tests/performance.test.mjs`（Node 22+）。跑移动 Lighthouse 时，新旧构建须使用相同的 gzip / Brotli 静态服务，三次取中位数；默认模拟限速的 LCP 与 breakdown 实测时间轴须分别标注，不能相加混用。
+
 ### 部署到 Cloudflare Pages
 
 1. [Cloudflare 控制台](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
@@ -189,7 +192,8 @@ npm run preview    # 本地预览构建结果
 ├── content/posts/*.md       # 文章（Markdown + frontmatter）
 ├── data/
 │   ├── site.ts              # 站点配置（名称、社交、评论）
-│   └── posts.ts             # 元数据导入 + 正文懒加载逻辑
+│   ├── posts.ts             # 列表元数据导入
+│   └── postContent.ts       # 文章正文懒加载映射
 ├── components/              # 页面与 UI 组件
 │   ├── PostPage / PostCard / HomePage / TagPage / AboutPage
 │   ├── Markdown             # 自研 Markdown 渲染（含代码高亮、复制按钮）
@@ -219,6 +223,8 @@ npm run preview    # 本地预览构建结果
 ## 📝 更新日志
 
 ### 移动端加载优化
+- **压缩服务实测**：同机 Brotli / gzip 静态服务、Lighthouse 默认移动模拟，三次中位数：原 main 的性能 53 → 90，LCP 14.52 → 3.70 秒，FCP 2.63 → 0.80 秒，TBT 676 → 26 毫秒，传输 2.91 MB → 0.40 MB。主包 1564.62 → 295.72 kB（gzip 529.64 → 99.08 kB）；这是本地对照，不等同于线上真实网络。
+- **第二轮**：按 Lighthouse 请求体积拆出仅搜索需要的正文摘录与文章加载映射；首页按实际文字请求字体字集，不删字重，其他路由 / 搜索仍加载完整字体；预加载头条，限制数屏外封面的提前下载。对照改用 gzip / Brotli 静态服务，保留自包含静态文章页。
 - 移除运行时 Tailwind CDN 和未使用的 React importmap，样式改为本地构建；保留原内联样式与自包含静态文章页。
 - 文章 / 高亮、标签、关于、搜索按需加载；首页卡片缩图与优先级优化；字体不再阻塞首屏渲染，最终外观保持原设计。
 

@@ -2,13 +2,10 @@ import React from 'react';
 import { sortedPosts, getAllTags } from '../data/posts';
 import { siteConfig } from '../data/site';
 import PostCard from './PostCard';
-
-// 首页展示的栏目顺序（其余标签仍可通过标签行进入）
-const SECTIONS = ['系统思维', '决策', '效率', '思考'];
-const PER_SECTION = 3;
+import { homeSections } from '../utils/homeSections';
 
 const HomePage: React.FC = () => {
-  const [featured, ...rest] = sortedPosts;
+  const [featured] = sortedPosts;
   const tags = getAllTags();
 
   return (
@@ -43,15 +40,8 @@ const HomePage: React.FC = () => {
 
       {/* 按栏目分区展示，每个栏目只放最新几篇，更多进栏目页 */}
       <div className="mt-16 space-y-16">
-        {(() => {
-          const seen = new Set<string>();
-          if (featured) seen.add(featured.slug);
-          return SECTIONS.map((section) => {
-            const postsInSection = rest
-              .filter((p) => p.tags.includes(section) && !seen.has(p.slug))
-              .slice(0, PER_SECTION);
+        {homeSections(sortedPosts).map(({ section, posts: postsInSection }) => {
             if (postsInSection.length === 0) return null;
-            postsInSection.forEach((p) => seen.add(p.slug));
 
             return (
               <section key={section}>
@@ -73,8 +63,7 @@ const HomePage: React.FC = () => {
                 </div>
               </section>
             );
-          });
-        })()}
+          })}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Post } from '../types';
 import { formatDate } from '../utils/formatDate';
 import { cardCover } from '../utils/cardCover';
@@ -11,6 +11,24 @@ const PostCard: React.FC<{ post: Post; featured?: boolean; category?: string }> 
   category: categoryProp,
 }) => {
   const category = categoryProp ?? post.tags[0];
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [nearViewport, setNearViewport] = useState(featured);
+
+  useEffect(() => {
+    if (nearViewport || !imageRef.current) return;
+    if (!('IntersectionObserver' in window)) {
+      setNearViewport(true);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setNearViewport(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: '300px' });
+    observer.observe(imageRef.current);
+    return () => observer.disconnect();
+  }, [nearViewport, post.cover]);
 
   const Cover = (
     <div
@@ -20,7 +38,8 @@ const PostCard: React.FC<{ post: Post; featured?: boolean; category?: string }> 
     >
       {post.cover ? (
         <img
-          src={cardCover(post.cover)}
+          ref={imageRef}
+          src={nearViewport ? cardCover(post.cover) : undefined}
           alt={post.title}
           width={600}
           height={400}
