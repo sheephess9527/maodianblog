@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { getPostBySlug, loadPostContent, sortedPosts } from '../data/posts';
+import { getPostBySlug, sortedPosts } from '../data/posts';
+import { loadPostContent } from '../data/postContent';
 import { formatDate } from '../utils/formatDate';
 import { useReadingPosition } from '../utils/useReadingPosition';
 import { useViewCount } from '../utils/useViewCount';

@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { siteConfig } from '../data/site';
 import ThemeToggle from './ThemeToggle';
-import SearchModal from './SearchModal';
 import { SearchIcon } from './Icons';
+
+const SearchModal = lazy(() => import('./SearchModal'));
 
 const Header: React.FC = () => {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -60,7 +61,7 @@ const Header: React.FC = () => {
           </nav>
         </div>
       </header>
-      {searchOpen && <SearchModal onClose={close} />}
+      {searchOpen && <Suspense fallback={null}><SearchModal onClose={close} /></Suspense>}
     </>
   );
 };

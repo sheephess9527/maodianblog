@@ -70,11 +70,16 @@ mcp__github__push_files({
 
 ## 架构红线（别踩，踩了线上会坏）
 - 🚫 **别把静态分享页改回「空壳 + 跳转」**。`vite.config.ts` 的 `articleMetaPlugin` 把每篇文章渲染成**完整自包含静态 HTML**（内联样式、无跳转、不依赖 SPA）。这是根治**微信打开分享链接白屏**的关键——微信老旧 WebView 跑不起整个 SPA。改回去会重现白屏/死循环。
-- 🚫 **关键渲染路径别依赖国内打不开的资源**（aistudiocdn、Google Fonts、Tailwind CDN 等被墙/不稳定的外链）。React 已打包进 bundle；正文内容不得依赖外链才能显示（Tailwind 现走 CDN，仅影响样式、可降级）。
+- 🚫 **关键渲染路径别依赖国内打不开的资源**（aistudiocdn、Google Fonts、Tailwind CDN 等被墙/不稳定的外链）。React 与 Tailwind CSS 均本地打包；Google Fonts 异步加载，系统字体兜底，正文和样式不依赖外链才能显示。
 - ⚠️ **路由**：SPA 用 hash 路由 `/#/post/slug`；对外/分享链接用干净的 `/post/slug`（静态文章页）。新文章自动进入 `import.meta.glob` 懒加载，无需改代码。
 
 ## 架构要点
-- **元数据/正文分离 + 懒加载**：`postsMetaPlugin` 构建时把所有 `.md` 的 frontmatter 生成 `virtual:posts-meta`（打进主包）；正文经 `import.meta.glob` 拆成独立 chunk，`PostPage` 按需加载。主包体积不随文章数增长。
+- **构建期样式**：Tailwind CSS v3 + PostCSS，配置见 `tailwind.config.js`，入口 `index.css`；扫描根目录与 `components` / `utils` / `data` 中的完整类名。条件类名须保留完整字符串，新增动态拼接类名时补 safelist；不使用运行时 CDN 或 typography 插件。
+- **页面分包**：文章、标签、关于和搜索按需加载；highlight.js 随文章页加载，保留完整语言集以维持无语言代码块的自动检测行为（现有围栏只有 `text` 和无标记）。首页不下载高亮库。
+- **卡片封面**：`utils/cardCover.ts` 只把 Picsum 的 1200×800 卡片 URL 转为同 seed 的 600×400；构建时预加载首页头条，其余通过 IntersectionObserver 在距视口 300px 时才设置 src（不支持时回退原生懒加载），避免浏览器提前下载数屏外的图。原始封面及静态分享页 / OG 保持不变。
+- **字体按需字集**：`postsMetaPlugin` 与首页共用 `utils/homeSections.ts` 的选文规则，构建首页专用 Google Fonts `text=` 请求，包含全部首页文字、标签、站点配置和组件固定文字；字体、字重不变。进入非首页或打开搜索时，`utils/loadFullFonts.ts` 换为完整字体样式；新文章自动更新字集，URL 过长时回退完整字体，不在构建时联网。新增首页文字来源时须补入字集。
+- **元数据/正文/搜索分离**：`virtual:posts-meta` 仅含列表元数据；500 字搜索摘录独立为 `virtual:posts-search`，随搜索框加载，搜索范围不变。正文加载映射在 `data/postContent.ts`，只随文章页加载。主包仍含全部文章标题 / 摘要等，不随正文大小增长，但会随文章数量增长。
+- **性能验证**：`node --experimental-strip-types --test tests/performance.test.mjs`；Lighthouse 对照测试必须给新旧构建同时启用 gzip / Brotli，避免把本地未压缩体积当成线上流量。默认模拟限速的 LCP 与 breakdown 的实测时间轴不同，报告时分开标注。
 - `vite.config.ts` 三个插件：`postsMetaPlugin`（元数据虚拟模块）、`rssPlugin`（`dist/rss.xml`）、`articleMetaPlugin`（自包含静态文章页 + OG meta，内含构建期 Markdown→HTML 渲染器）。
 
 ## 关键文件
@@ -82,7 +87,7 @@ mcp__github__push_files({
 | --- | --- |
 | `content/posts/*.md` | 文章（Markdown + frontmatter） |
 | `data/site.ts` | 站点配置：名称、社交、`comments.giscus` 评论开关 |
-| `data/posts.ts` | 元数据导入 + 正文懒加载 |
+| `data/posts.ts` / `data/postContent.ts` | 列表元数据 / 文章正文懒加载映射 |
 | `vite.config.ts` | 构建配置 + 三个自定义插件（含静态文章页生成）|
 | `components/PostPage.tsx` | 文章页（进度条、相关文章、评论、TOC）|
 | `components/Markdown.tsx` | 前端自研 Markdown 渲染（代码高亮 + 复制按钮）|

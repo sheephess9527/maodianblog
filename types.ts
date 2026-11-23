@@ -17,8 +17,6 @@ export interface Post {
   readingMinutes: number;
   /** 封面图地址，可选 */
   cover?: string;
-  /** 用于搜索的纯文本摘录（无 Markdown 符号），构建时生成 */
-  searchText: string;
   /** 正文 Markdown——仅在文章页按需加载，列表页为 undefined */
   content?: string;
 }
