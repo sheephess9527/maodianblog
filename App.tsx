@@ -1,13 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { useHashRoute } from './utils/useHashRoute';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './components/HomePage';
-import PostPage from './components/PostPage';
-import TagPage from './components/TagPage';
-import AboutPage from './components/AboutPage';
 import NotFound from './components/NotFound';
 import RefreshButton from './components/RefreshButton';
+
+const PostPage = lazy(() => import('./components/PostPage'));
+const TagPage = lazy(() => import('./components/TagPage'));
+const AboutPage = lazy(() => import('./components/AboutPage'));
 
 const App: React.FC = () => {
   const route = useHashRoute();
@@ -43,7 +44,7 @@ const App: React.FC = () => {
       <Header />
       <main className="w-full flex-1">
         <div key={routeKey} className="page-enter">
-          {renderRoute()}
+          <Suspense fallback={<div className="min-h-screen" />}>{renderRoute()}</Suspense>
         </div>
       </main>
       <Footer />

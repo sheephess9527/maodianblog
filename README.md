@@ -44,7 +44,7 @@
 
 ### 架构红线（别踩，否则线上会坏）
 - 🚫 **别把静态分享页改回「空壳 + 跳转」**。`articleMetaPlugin` 现在把每篇文章渲染成**完整自包含静态 HTML**（内联样式、无跳转、不依赖 SPA）。这是为根治**微信打开分享链接白屏**而做的——微信老旧 WebView 跑不起整个 SPA。改回去会重现白屏/死循环。
-- 🚫 **关键渲染路径别依赖国内打不开的资源**。React 等已打包进 bundle；首屏内容**不得**依赖 `aistudiocdn`、Google Fonts、Tailwind CDN 等被墙/不稳定的外链才能显示（Tailwind 目前走 CDN，仅影响样式、可降级，但别让正文内容依赖它）。
+- 🚫 **关键渲染路径别依赖国内打不开的资源**。React 与 Tailwind CSS 均本地打包；首屏内容和样式**不得**依赖 `aistudiocdn`、Google Fonts、Tailwind CDN 等被墙/不稳定的外链才能显示。Google Fonts 异步加载，系统字体兜底。
 - ⚠️ **路由**：SPA 用 hash 路由（`/#/post/slug`）；对外/分享链接用干净的 `/post/slug`（静态文章页）。新文章自动进入 `import.meta.glob` 懒加载，无需改代码。
 
 ### 验证白屏类问题（可选但推荐）
@@ -87,6 +87,9 @@
 
 - **`virtual:posts-meta`**（虚拟模块）：构建时由 `postsMetaPlugin` 读取所有 `.md` 的 frontmatter，生成轻量元数据（标题、日期、标签、摘要、阅读时长、用于搜索的纯文本），打包进主包供列表 / 搜索 / 路由使用。
 - **正文懒加载**：每篇文章的 Markdown 正文通过 `import.meta.glob` 拆成独立 JS chunk，由 `PostPage` 在打开文章时按需加载，加载期间显示骨架屏。
+- **页面与高亮分包**：文章、标签、关于和搜索按需加载，首页不再下载 highlight.js。现有代码围栏只有 `text` 与无标记，保留完整高亮语言集，避免改变无标记代码的自动检测结果。
+- **构建期 CSS**：Tailwind CSS v3 经 PostCSS / Autoprefixer 生成本地 CSS（`index.css` → Vite），沿用原配色、字体和 class 暗色模式；`tailwind.config.js` 扫描入口、组件、工具和数据目录。条件分支使用完整类名，无需 safelist；新增动态拼接须补 safelist。未启用 typography 插件，与原无插件 CDN 一致。
+- **封面与字体**：卡片使用同 seed 的 Picsum 600×400（`utils/cardCover.ts`），声明尺寸，头条高优先级，其余异步解码 / 懒加载；原始 1200×800 封面仍用于文章与 OG / 静态页。Google Fonts 保持原字体 / 字重及 `display=swap`，以 print/onload 异步样式和 noscript 兜底加载。
 
 `vite.config.ts` 中的三个自定义插件：
 
@@ -174,7 +177,10 @@ npm run preview    # 本地预览构建结果
 ## 🗂️ 项目结构
 
 ```
-├── index.html               # 入口 HTML（字体、Tailwind 配置）
+├── index.html               # 入口 HTML（异步字体、PWA、内联样式）
+├── index.css                # Tailwind 样式入口
+├── tailwind.config.js       # 类名扫描、字体、品牌色与暗色配置
+├── postcss.config.js        # Tailwind / Autoprefixer 构建管线
 ├── index.tsx                # React 挂载入口
 ├── App.tsx                  # 路由与整体布局
 ├── types.ts                 # 类型定义
@@ -205,12 +211,16 @@ npm run preview    # 本地预览构建结果
 ## 🛠️ 技术栈
 
 - **React 19** + **TypeScript** + **Vite 6**
-- **Tailwind CSS**（CDN 配置于 `index.html`）
+- **Tailwind CSS v3**（本地构建，配置于 `tailwind.config.js`）
 - **highlight.js** 代码高亮
 - 自研：hash 路由、Markdown 渲染、frontmatter 解析，零第三方 UI / 路由依赖
 - **giscus** 评论、**Abacus** 阅读统计、**Sveltia CMS** 写作后台
 
 ## 📝 更新日志
+
+### 移动端加载优化
+- 移除运行时 Tailwind CDN 和未使用的 React importmap，样式改为本地构建；保留原内联样式与自包含静态文章页。
+- 文章 / 高亮、标签、关于、搜索按需加载；首页卡片缩图与优先级优化；字体不再阻塞首屏渲染，最终外观保持原设计。
 
 ### 2026-06
 - **修复微信分享白屏**：分享页从「空壳 + 跳转 SPA」改为**自包含静态文章页**（构建期把 Markdown 渲染成完整 HTML，内联样式、不依赖 SPA/CDN）。根因是微信老旧 WebView 跑不起整个 SPA。

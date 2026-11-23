@@ -34,38 +34,18 @@
     <!-- RSS Feed -->
     <link rel="alternate" type="application/rss+xml" title="锚点 · Anchor" href="/rss.xml" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              // 思源黑体（Noto Sans SC）为主，系统字体兜底减少 CLS，Inter 兜底拉丁字符
-              sans: ['Noto Sans SC', 'Noto Sans SC Fallback', 'Inter', 'system-ui', 'sans-serif'],
-            },
-            colors: {
-              brand: {
-                50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
-                400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
-                800: '#1e40af', 900: '#1e3a8a',
-              },
-              accent: {
-                50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74',
-                400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c',
-              },
-            },
-          },
-        },
-      };
-    </script>
+    <link rel="preconnect" href="https://picsum.photos" />
+    <link rel="preconnect" href="https://fastly.picsum.photos" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- 精简字重：移除 Noto Sans SC 500（真实字体文件不存在 500，减少一次网络请求） -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;700;900&display=swap"
-      rel="stylesheet"
+      rel="stylesheet" media="print" onload="this.media='all'"
     />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;700;900&display=swap" />
+    </noscript>
     <style>
       /* 字体回退：在 Noto Sans SC 加载前用系统 CJK 字体填充，匹配字形尺寸减少布局偏移（CLS） */
       @font-face {
@@ -108,19 +88,9 @@
         pre { background: #f5f5f5 !important; color: #000 !important; }
       }
     </style>
-    <script type="importmap">
-      {
-        "imports": {
-          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-          "react/": "https://aistudiocdn.com/react@^19.2.0/",
-          "react": "https://aistudiocdn.com/react@^19.2.0"
-        }
-      }
-    </script>
   </head>
   <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
-

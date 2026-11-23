@@ -70,10 +70,13 @@ mcp__github__push_files({
 
 ## 架构红线（别踩，踩了线上会坏）
 - 🚫 **别把静态分享页改回「空壳 + 跳转」**。`vite.config.ts` 的 `articleMetaPlugin` 把每篇文章渲染成**完整自包含静态 HTML**（内联样式、无跳转、不依赖 SPA）。这是根治**微信打开分享链接白屏**的关键——微信老旧 WebView 跑不起整个 SPA。改回去会重现白屏/死循环。
-- 🚫 **关键渲染路径别依赖国内打不开的资源**（aistudiocdn、Google Fonts、Tailwind CDN 等被墙/不稳定的外链）。React 已打包进 bundle；正文内容不得依赖外链才能显示（Tailwind 现走 CDN，仅影响样式、可降级）。
+- 🚫 **关键渲染路径别依赖国内打不开的资源**（aistudiocdn、Google Fonts、Tailwind CDN 等被墙/不稳定的外链）。React 与 Tailwind CSS 均本地打包；Google Fonts 异步加载，系统字体兜底，正文和样式不依赖外链才能显示。
 - ⚠️ **路由**：SPA 用 hash 路由 `/#/post/slug`；对外/分享链接用干净的 `/post/slug`（静态文章页）。新文章自动进入 `import.meta.glob` 懒加载，无需改代码。
 
 ## 架构要点
+- **构建期样式**：Tailwind CSS v3 + PostCSS，配置见 `tailwind.config.js`，入口 `index.css`；扫描根目录与 `components` / `utils` / `data` 中的完整类名。条件类名须保留完整字符串，新增动态拼接类名时补 safelist；不使用运行时 CDN 或 typography 插件。
+- **页面分包**：文章、标签、关于和搜索按需加载；highlight.js 随文章页加载，保留完整语言集以维持无语言代码块的自动检测行为（现有围栏只有 `text` 和无标记）。首页不下载高亮库。
+- **卡片封面**：`utils/cardCover.ts` 只把 Picsum 的 1200×800 卡片 URL 转为同 seed 的 600×400；头条优先加载，其余懒加载，原始封面及静态分享页 / OG 保持不变。
 - **元数据/正文分离 + 懒加载**：`postsMetaPlugin` 构建时把所有 `.md` 的 frontmatter 生成 `virtual:posts-meta`（打进主包）；正文经 `import.meta.glob` 拆成独立 chunk，`PostPage` 按需加载。主包体积不随文章数增长。
 - `vite.config.ts` 三个插件：`postsMetaPlugin`（元数据虚拟模块）、`rssPlugin`（`dist/rss.xml`）、`articleMetaPlugin`（自包含静态文章页 + OG meta，内含构建期 Markdown→HTML 渲染器）。
 

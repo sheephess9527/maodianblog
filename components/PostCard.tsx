@@ -1,6 +1,7 @@
 import React from 'react';
 import { Post } from '../types';
 import { formatDate } from '../utils/formatDate';
+import { cardCover } from '../utils/cardCover';
 
 // 杂志网格卡片。featured=true 时为首页头条大卡（图文左右排）。
 // category：可指定显示的板块标签（在某个栏目下展示时传入，保证标签与当前栏目一致）。
@@ -19,9 +20,13 @@ const PostCard: React.FC<{ post: Post; featured?: boolean; category?: string }> 
     >
       {post.cover ? (
         <img
-          src={post.cover}
+          src={cardCover(post.cover)}
           alt={post.title}
-          loading="lazy"
+          width={600}
+          height={400}
+          loading={featured ? 'eager' : 'lazy'}
+          fetchPriority={featured ? 'high' : 'auto'}
+          decoding="async"
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
         />
       ) : (
