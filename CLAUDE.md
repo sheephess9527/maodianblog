@@ -5,7 +5,7 @@
 ## 项目速览
 - 个人中文博客「锚点 · Anchor」，聚焦 **系统思维 / 决策 / 效率 / 思考**。
 - 仓库 `sheephess9527/maodianblog`，开发分支 **`main`**。
-- 推到 `main` → **Cloudflare Pages 自动构建部署** → [www.maodian.uk](https://www.maodian.uk)，约 1–2 分钟生效。
+- 推到 `main` → **Cloudflare Workers Builds 自动构建部署** → [www.maodian.uk](https://www.maodian.uk)，约 1–2 分钟生效。
 - React 19 + TypeScript + Vite 6，纯静态、无后端。`dist/` 由云端构建，**不要提交**。
 
 ## 常用命令
@@ -72,6 +72,7 @@ mcp__github__push_files({
 - 🚫 **别把静态分享页改回「空壳 + 跳转」**。`vite.config.ts` 的 `articleMetaPlugin` 把每篇文章渲染成**完整自包含静态 HTML**（内联样式、无跳转、不依赖 SPA）。这是根治**微信打开分享链接白屏**的关键——微信老旧 WebView 跑不起整个 SPA。改回去会重现白屏/死循环。
 - 🚫 **关键渲染路径别依赖国内打不开的资源**（aistudiocdn、Google Fonts、Tailwind CDN 等被墙/不稳定的外链）。React 与 Tailwind CSS 均本地打包；Google Fonts 异步加载，系统字体兜底，正文和样式不依赖外链才能显示。
 - ⚠️ **路由**：SPA 用 hash 路由 `/#/post/slug`；对外/分享链接用干净的 `/post/slug`（静态文章页）。新文章自动进入 `import.meta.glob` 懒加载，无需改代码。
+- **404**：`wrangler.jsonc` 的 `assets.not_found_handling` 让未匹配的路径以 HTTP 404 返回 `public/404.html`（构建后位于 `dist/404.html`）。标签和关于仍用 hash 路由，搜索仍是弹窗。构建后运行 `npx wrangler dev --port 8787`，另开终端运行 `node --test tests/routing.test.mjs` 验证。
 
 ## 架构要点
 - **构建期样式**：Tailwind CSS v3 + PostCSS，配置见 `tailwind.config.js`，入口 `index.css`；扫描根目录与 `components` / `utils` / `data` 中的完整类名。条件类名须保留完整字符串，新增动态拼接类名时补 safelist；不使用运行时 CDN 或 typography 插件。

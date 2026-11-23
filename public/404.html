@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>页面走丢了 · 锚点</title>
+    <link rel="icon" type="image/png" href="/icons/favicon-32.png" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --background: #f8fafc;
+        --ink: #0f172a;
+        --muted: #475569;
+        --border: #e2e8f0;
+        --accent: #c2410c;
+        --brand: #2563eb;
+        --brand-hover: #1d4ed8;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background: #020617;
+          --ink: #f8fafc;
+          --muted: #94a3b8;
+          --border: #1e293b;
+          --accent: #fb923c;
+        }
+      }
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--ink);
+        font: 1rem/1.6 system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      header { border-bottom: 1px solid var(--border); }
+      .wordmark {
+        display: flex;
+        align-items: baseline;
+        gap: .5rem;
+        width: fit-content;
+        padding: 1.5rem 1.25rem;
+        color: var(--ink);
+        font-size: 1.25rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .wordmark span {
+        color: var(--muted);
+        font-size: .6875rem;
+        letter-spacing: .25em;
+        text-transform: uppercase;
+      }
+      .header-inner { max-width: 72rem; margin: auto; }
+      main { margin: auto; padding: clamp(3rem, 10vh, 6rem) 1.25rem; text-align: center; }
+      .status { margin: 0; color: var(--accent); font-size: 4.5rem; font-weight: 900; line-height: 1; }
+      h1 { margin: 1rem 0 .5rem; font-size: 1.5rem; }
+      .detail { margin: 0; color: var(--muted); }
+      .home {
+        display: inline-block;
+        margin-top: 2rem;
+        padding: .75rem 1.5rem;
+        border-radius: .5rem;
+        background: var(--brand);
+        color: #fff;
+        font-size: .875rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .home:hover { background: var(--brand-hover); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <a class="wordmark" href="/">锚点 <span>Anchor</span></a>
+      </div>
+    </header>
+    <main>
+      <p class="status">404</p>
+      <h1>页面走丢了</h1>
+      <p class="detail">你访问的页面不存在，也许它被移动或删除了。</p>
+      <a class="home" href="/">回到首页</a>
+    </main>
+  </body>
+</html>
